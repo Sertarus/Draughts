@@ -1,1 +1,18 @@
-123
+for vertical, horizontal in itertools.product(range(_board.width), range(_board.height)):
+            board_cell = BoardCell(vertical, horizontal)
+            if (vertical + horizontal) % 2 == 0:
+                pixmap = QPixmap("/resources/images/Dark_rect.png")
+            else:
+                pixmap = QPixmap("/resources/images/Light_rect.png")
+            group = QGroupBox()
+            group.children().append(pixmap)
+            _buttons[board_cell] = group
+            self.gridLayout.addWidget(group, horizontal, vertical)
+
+_board = Board(8, 8)
+
+_buttons = dict()
+
+_in_progress = False
+
+choose_cell_game_phase = True

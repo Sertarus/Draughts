@@ -1,0 +1,64 @@
+.pass1 {
+-fx-border-color:black;
+-fx-border-style:solid;
+-fx-set-fx-text-fill: black;
+-fx-background-color: #dcb35c;
+-fx-effect: innershadow( gaussian, rgba( 0, 0, 0, 0.5 ), 10, 0, 5, 5 );
+}
+.pass2 {
+-fx-border-color:black;
+-fx-border-style:solid;
+-fx-set-fx-text-fill: black;
+-fx-background-color: #dcb35c;
+}
+.pass2:hover {
+-fx-effect: innershadow( gaussian, rgba( 0, 0, 0, 0.5 ), 10, 0, 5, 5 );
+}
+.restart {
+-fx-border-color:black;
+-fx-border-style:solid;
+-fx-set-fx-text-fill: black;
+-fx-background-color: #dcb35c;
+}
+.restart:hover {
+-fx-effect: innershadow( gaussian, rgba( 0, 0, 0, 0.5 ), 10, 0, 5, 5 );
+}
+.vBox {
+-fx-border-color:black;
+-fx-border-style:solid;
+-fx-border-width:3px;
+-fx-background-color:#FFFACD;
+}
+.label {
+-fx-border-color:black;
+-fx-border-style:solid;
+-fx-border-width:0 0 3 0;
+}
+.radio-button .radio {
+    -fx-border-width: 1px;
+    -fx-border-color: #000;
+    -fx-background-color: #dcb35c;
+    -fx-background-image: null;
+    -fx-border-radius: 15px;
+    -fx-padding: 4px;
+}
+.radio-button .radio:selected {
+    -fx-background-color: white;
+    -fx-background-image: null;
+}
+.radio-button -radio:armed {
+    -fx-background-color: white;
+    -fx-background-image: null;
+}
+.radio-button -radio:determinate {
+    -fx-background-color: white;
+    -fx-background-image: null;
+}
+.radio-button -radio:indeterminate {
+    -fx-background-color: white;
+    -fx-background-image: null;
+}
+.radio-button .dot {
+    -fx-background-radius: 15px;
+    -fx-padding: 8px;
+}
