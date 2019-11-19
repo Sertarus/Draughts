@@ -7,13 +7,13 @@
 # WARNING! All changes made in this file will be lost!
 import functools
 import itertools
-import string
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import pyqtSignal
 
 from python.model.Board import Board
 from python.model.BoardCell import BoardCell
+from python.model.ComputerLogic import ComputerLogic
 from python.model.Side import Side
 
 board = Board(8, 8)
@@ -97,7 +97,6 @@ class GameMainWindow(object):
         self.restart.pressed.connect(lambda : self.restart_pressed())
         self.widget = QtWidgets.QWidget(self.centralwidget)
         self.widget.setGeometry(QtCore.QRect(180, 0, 621, 601))
-        self.widget.setObjectName("widget")
         self.gridLayout = QtWidgets.QGridLayout(self.widget)
         self.gridLayout.setContentsMargins(0, 0, 0, 0)
         self.gridLayout.setSpacing(0)
@@ -107,11 +106,9 @@ class GameMainWindow(object):
             image_label = QtWidgets.QLabel(groupBox)
             image_label.setGeometry(QtCore.QRect(0, 0, 80, 80))
             if (vertical + horizontal) % 2 == 0:
-                image_label.setPixmap(
-                    QtGui.QPixmap("C:/Users/User/IdeaProjects/Draughts/src/main/resources/images/Light_rect.png"))
+                image_label.setStyleSheet("background-color:#fdeda8;")
             else:
-                image_label.setPixmap(
-                    QtGui.QPixmap("C:/Users/User/IdeaProjects/Draughts/src/main/resources/images/Dark_rect.png"))
+                image_label.setStyleSheet("background-color:#ba7b55;")
             event = functools.partial(self.group_clicked, board_cell)
             groupBox.clicked.connect(event)
             buttons[board_cell] = groupBox
@@ -126,67 +123,86 @@ class GameMainWindow(object):
 
     def retranslate_ui(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
+        MainWindow.setWindowTitle(_translate("Draughts", "Draughts"))
         self.restart.setText(_translate("MainWindow", "Restart game"))
 
     def group_clicked(self, board_cell: BoardCell):
         global choose_cell_phase
         global chosen_cell
         group = buttons[board_cell]
+        image_label = group.children()[0]
         if in_progress:
             if choose_cell_phase:
                 if board.cells[board_cell] is not None:
                     if board.cells[board_cell].side == board.turn:
-                        print(group.children())
-                        image_label = QtWidgets.QLabel(group)
-                        image_label.setGeometry(QtCore.QRect(-1, 0, 80, 75))
-                        image_label.setPixmap(
-                            QtGui.QPixmap("C:/Users/User/IdeaProjects/Draughts/src/main/resources/images/clicked.png"))
-                        group.children().append(image_label)
-                        group.children()[2].show()
+                        image_label.setStyleSheet("background-color:#ac6539;")
                         choose_cell_phase = False
                         chosen_cell = board_cell
             else:
                 turn = board.make_turn(chosen_cell, board_cell.vertical, board_cell.horizontal)
                 if board.turn_phase != 2:
                     if turn is None:
-                        buttons[chosen_cell].children()[2].deleteLater()
+                        buttons[chosen_cell].children()[0].setStyleSheet("background-color:#ba7b55;")
                         choose_cell_phase = True
                         chosen_cell = None
                     elif turn[1] is None:
-                        buttons[chosen_cell].children()[2].deleteLater()
+                        image_label.setStyleSheet("background-color:#ba7b55;")
+                        buttons[chosen_cell].children()[0].setStyleSheet("background-color:#ba7b55;")
                         self.update_board(chosen_cell)
                         self.update_board(board_cell)
                         choose_cell_phase = True
                         chosen_cell = None
-                if (board.turn_phase == 2 and turn is not None) or (turn is not None and turn[1] is not None):
-                    buttons[chosen_cell].children()[2].deleteLater()
+                        current_turn = board.turn
+                        white_sum = board.white_checkers + board.white_kings
+                        black_sum = board.black_kings + board.black_checkers
+                        while board.turn == current_turn and in_progress:
+                            computer_turn = ComputerLogic.make_computer_turn(board)
+                            self.update_board(computer_turn[0])
+                            self.update_board(computer_turn[1][0])
+                            if computer_turn[1][1] is not None:
+                                self.update_board(computer_turn[1][1])
+                if turn is not None and turn[1] is not None:
+                    buttons[chosen_cell].children()[0].setStyleSheet("background-color:#ba7b55;")
                     self.update_board(chosen_cell)
                     self.update_board(turn[1])
                     self.update_board(board_cell)
                     if board.cells[board_cell].side == board.turn:
-                        image_label = QtWidgets.QLabel(group)
-                        image_label.setGeometry(QtCore.QRect(-1, 0, 80, 75))
-                        image_label.setPixmap(
-                            QtGui.QPixmap("C:/Users/User/IdeaProjects/Draughts/src/main/resources/images/clicked.png"))
-                        group.children().append(image_label)
-                        group.children()[2].show()
+                        image_label.setStyleSheet("background-color:#ac6539;")
                         chosen_cell = board_cell
                     else:
                         choose_cell_phase = True
                         chosen_cell = None
+                        current_turn = board.turn
+                        white_sum = board.white_checkers + board.white_kings
+                        black_sum = board.black_kings + board.black_checkers
+                        while board.turn == current_turn and in_progress:
+                            computer_turn = ComputerLogic.make_computer_turn(board)
+                            self.update_board(computer_turn[0])
+                            self.update_board(computer_turn[1][0])
+                            if computer_turn[1][1] is not None:
+                                self.update_board(computer_turn[1][1])
+
+
 
     def restart_pressed(self):
+        global in_progress
+        global chosen_cell
+        global choose_cell_phase
+        if chosen_cell is not None:
+            buttons[chosen_cell].children()[0].setStyleSheet("background-color:#ba7b55;")
+            choose_cell_phase = True
+            chosen_cell = None
         board.fill_board()
         for cell in board.cells:
             self.update_board(cell)
         self.update_status()
+        in_progress = True
 
     def update_board(self, board_cell: BoardCell):
         checker = board.cells[board_cell]
         group = buttons[board_cell]
         if len(group.children()) > 1:
-            group.children()[1].deleteLater()
+            group.children()[len(group.children()) - 1].deleteLater()
         if checker is None:
             return
         elif checker.side == Side.BLACK:

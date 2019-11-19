@@ -11,9 +11,13 @@ class Board(object):
         self.cells = dict()
         self.turn = Side.WHITE
         self.white_checkers = 0
+        self.white_kings = 0
         self.black_checkers = 0
+        self.black_kings = 0
         self.turn_phase = 0
         self.last_beat_cell = None
+        self.last_beaten_checker = None
+        self.attr_story = list()
         self.fill_board()
 
     def fill_board(self):
@@ -40,32 +44,45 @@ class Board(object):
         possible_turns = dict()
         for key in self.cells:
             if self.cells[key] is not None and self.cells[key].side == self.turn:
-                self._else_possible_turns(possible_turns, key)
+                self.else_possible_turns(possible_turns, key)
         if possible_turns and self.turn_phase == 0:
             self.turn_phase = 1
         if 0 <= vertical < self.width and 0 <= horizontal < self.height and self.cells[old_cell] is not None and \
                 self.cells[old_cell].side == self.turn:
-            if self._is_possible_turn(old_cell, turn_cell) and \
+            if self.is_possible_turn(old_cell, turn_cell) and \
                     (self.turn_phase == 0 or
                      (self.turn_phase == 1 and old_cell in possible_turns and turn_cell in possible_turns[old_cell]) or
                      (self.turn_phase == 2 and self.last_beat_cell in possible_turns)):
+                self.attr_story.append((self.turn, self.turn_phase, self.last_beaten_checker, self.last_beat_cell,
+                                        self.white_checkers, self.white_kings, self.black_checkers, self.black_kings,
+                                        Checker(self.cells[old_cell].side, self.cells[old_cell].is_king)))
                 cell_between = self._get_full_cell_between(old_cell, turn_cell)
                 self.cells[turn_cell] = self.cells[old_cell]
                 self.cells[old_cell] = None
                 if self.turn == Side.WHITE and horizontal == 0:
                     self.cells[turn_cell].is_king = True
+                    self.white_checkers -= 1
+                    self.white_kings += 1
                 if self.turn == Side.BLACK and horizontal == self.height - 1:
                     self.cells[turn_cell].is_king = True
+                    self.black_checkers -= 1
+                    self.black_kings += 1
                 if cell_between is not None and self.cells[cell_between] is not None:
-                    self.cells[cell_between] = None
                     if self.turn == Side.WHITE:
-                        self.white_checkers -= 1
+                        if self.cells[cell_between].is_king:
+                            self.black_kings -= 1
+                        else:
+                            self.black_checkers -= 1
                     else:
-                        self.black_checkers -= 1
+                        if self.cells[cell_between].is_king:
+                            self.white_kings -= 1
+                        else:
+                            self.white_checkers -= 1
+                    self.last_beaten_checker = self.cells[cell_between]
+                    self.cells[cell_between] = None
                     possible_turns = dict()
-                    self._else_possible_turns(possible_turns, turn_cell)
+                    self.else_possible_turns(possible_turns, turn_cell)
                     if possible_turns:
-                        print(possible_turns)
                         self.turn_phase = 2
                         self.last_beat_cell = turn_cell
                         return turn_cell, cell_between
@@ -74,6 +91,21 @@ class Board(object):
                 self.turn = self.turn.opposite()
                 return turn_cell, cell_between
         return None
+
+    def unmake_turn(self, old_cell, cell_between, turn_cell):
+        self.cells[old_cell] = self.attr_story[len(self.attr_story) - 1][8]
+        self.cells[turn_cell] = None
+        if cell_between is not None:
+            self.cells[cell_between] = self.last_beaten_checker
+        self.turn = self.attr_story[len(self.attr_story) - 1][0]
+        self.turn_phase = self.attr_story[len(self.attr_story) - 1][1]
+        self.last_beaten_checker = self.attr_story[len(self.attr_story) - 1][2]
+        self.last_beat_cell = self.attr_story[len(self.attr_story) - 1][3]
+        self.white_checkers = self.attr_story[len(self.attr_story) - 1][4]
+        self.white_kings = self.attr_story[len(self.attr_story) - 1][5]
+        self.black_checkers = self.attr_story[len(self.attr_story) - 1][6]
+        self.black_kings = self.attr_story[len(self.attr_story) - 1][7]
+        del self.attr_story[-1]
 
     def winner(self):
         if self.white_checkers == 0 or self._is_side_cant_make_turn(Side.WHITE):
@@ -88,16 +120,15 @@ class Board(object):
                 for second_cell in self.cells:
                     dif = cell.minus(second_cell)
                     if abs(dif.horizontal) == abs(dif.vertical):
-                        if self._is_possible_turn(cell, second_cell):
+                        if self.is_possible_turn(cell, second_cell):
                             return False
         return True
 
-
-    def _is_possible_turn(self, old_cell: BoardCell, turn_cell: BoardCell):
+    def is_possible_turn(self, old_cell: BoardCell, turn_cell: BoardCell):
         if self.cells[turn_cell] is None:
             difference = turn_cell.minus(old_cell)
             cell_between = self._get_full_cell_between(old_cell, turn_cell)
-            if self.cells[old_cell].is_king:
+            if self.cells[old_cell].is_king and abs(difference.vertical) == abs(difference.horizontal):
                 if cell_between is None:
                     return True
                 if self.cells[cell_between].side != self.turn:
@@ -140,14 +171,14 @@ class Board(object):
                     return current_cell
         return None
 
-    def _else_possible_turns(self, possible_turns: dict, cell: BoardCell):
+    def else_possible_turns(self, possible_turns: dict, cell: BoardCell):
         for i in range(-1, 2, 2):
             for j in range(-1, 2, 2):
                 direction = BoardCell(i, j)
                 dir_multiplier = 2
                 current_cell = cell.plus(direction.times(dir_multiplier))
                 while 0 <= current_cell.vertical < self.width and 0 <= current_cell.horizontal < self.height:
-                    if self._is_possible_turn(cell, current_cell) and \
+                    if self.is_possible_turn(cell, current_cell) and \
                             self._get_full_cell_between(cell, current_cell) is not None:
                         if cell not in possible_turns:
                             possible_turns[cell] = list()
