@@ -22,6 +22,7 @@ class Board(object):
 
     def fill_board(self):
         self.cells.clear()
+        self.attr_story.clear()
         self.white_checkers = 0
         self.black_checkers = 0
         self.turn = Side.WHITE
@@ -52,7 +53,7 @@ class Board(object):
             if self.is_possible_turn(old_cell, turn_cell) and \
                     (self.turn_phase == 0 or
                      (self.turn_phase == 1 and old_cell in possible_turns and turn_cell in possible_turns[old_cell]) or
-                     (self.turn_phase == 2 and self.last_beat_cell in possible_turns)):
+                     (self.turn_phase == 2 and old_cell == self.last_beat_cell)):
                 self.attr_story.append((self.turn, self.turn_phase, self.last_beaten_checker, self.last_beat_cell,
                                         self.white_checkers, self.white_kings, self.black_checkers, self.black_kings,
                                         Checker(self.cells[old_cell].side, self.cells[old_cell].is_king)))
@@ -108,9 +109,9 @@ class Board(object):
         del self.attr_story[-1]
 
     def winner(self):
-        if self.white_checkers == 0 or self._is_side_cant_make_turn(Side.WHITE):
+        if self.white_checkers + self.white_kings == 0 or self._is_side_cant_make_turn(Side.WHITE):
             return Side.BLACK
-        if self.black_checkers == 0 or self._is_side_cant_make_turn(Side.BLACK):
+        if self.black_checkers + self.black_kings == 0 or self._is_side_cant_make_turn(Side.BLACK):
             return Side.WHITE
         return None
 

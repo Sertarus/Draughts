@@ -55,7 +55,8 @@ class ComputerLogic(object):
                 tmp = ComputerLogic._alpha_beta(board, color, depth - 1, alpha, beta, start_color)
             else:
                 tmp = ComputerLogic._alpha_beta(board, color.opposite(), depth - 1, -beta, -alpha, start_color)
-            board.unmake_turn(turn[0], turn_properties[1], turn[1])
+            if turn_properties is not None:
+                board.unmake_turn(turn[0], turn_properties[1], turn[1])
             if tmp[0] > score[0]:
                 score[0] = tmp[0]
                 score[1] = turn
@@ -67,5 +68,5 @@ class ComputerLogic(object):
 
     @staticmethod
     def make_computer_turn(board: Board):
-        best_turn = ComputerLogic._alpha_beta(board, board.turn, 6, -sys.maxsize, sys.maxsize, board.turn)
+        best_turn = ComputerLogic._alpha_beta(board, board.turn, 5, -sys.maxsize, sys.maxsize, board.turn)
         return best_turn[1][0], board.make_turn(best_turn[1][0], best_turn[1][1].vertical, best_turn[1][1].horizontal)

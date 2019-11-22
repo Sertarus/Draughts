@@ -8,7 +8,6 @@ from python.PyQt5.GameMainWindow import GameMainWindow
 class GameView(QMainWindow):
 
     def __init__(self):
-        print(sys.path)
         super(GameView, self).__init__()
         self.ui = GameMainWindow()
         self.ui.setup_ui(self)
