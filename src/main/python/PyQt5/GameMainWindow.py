@@ -7,6 +7,8 @@
 # WARNING! All changes made in this file will be lost!
 import functools
 import itertools
+import os
+import sys
 from time import sleep
 
 from PyQt5 import QtCore, QtGui, QtWidgets
@@ -45,6 +47,14 @@ class UnclosableDialog(QDialog):
     def keyPressEvent(self, QPressEvent):
         if QPressEvent.key != QtCore.Qt.Key_Escape:
             QPressEvent.accept()
+
+def resource_path(relative_path):
+    try:
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+
+    return os.path.join(base_path, relative_path)
 
 
 class GameMainWindow(object):
@@ -294,6 +304,7 @@ class GameMainWindow(object):
         self.update_status()
 
     def make_computer_turn(self):
+        sleep(1)
         if board.attr_story and board.turn != board.attr_story[len(board.attr_story) - 1][0]:
             for cell in marked_cells:
                 buttons[cell].children()[0].setStyleSheet("background-color:#ba7b55;")
@@ -303,7 +314,9 @@ class GameMainWindow(object):
         self.update_board(computer_turn[0])
         self.update_board(computer_turn[1][0])
         buttons[computer_turn[0]].children()[0].setStyleSheet("background-color:#ac6539;")
+        buttons[computer_turn[0]].children()[0].repaint()
         buttons[computer_turn[1][0]].children()[0].setStyleSheet("background-color:#ac6539;")
+        buttons[computer_turn[1][0]].children()[0].repaint()
         marked_cells.append(computer_turn[0])
         marked_cells.append(computer_turn[1][0])
         if computer_turn[1][1] is not None:
@@ -326,10 +339,14 @@ class GameMainWindow(object):
             image_label.setGeometry(QtCore.QRect(10, 8, 60, 60))
             if checker.is_king:
                 image_label.setPixmap(
-                    QtGui.QPixmap("C:/Users/User/IdeaProjects/Draughts/src/main/resources/images/Black_king.png"))
+                    QtGui.QPixmap(
+                        resource_path
+                        ("Black_king.png")))
             else:
                 image_label.setPixmap(
-                    QtGui.QPixmap("C:/Users/User/IdeaProjects/Draughts/src/main/resources/images/Black_checker.png"))
+                    QtGui.QPixmap(
+                        resource_path
+                        ("Black_checker.png")))
             group.children().append(image_label)
             image_label.show()
         elif (checker.side == Side.WHITE and not is_inverted_sides) or\
@@ -338,10 +355,14 @@ class GameMainWindow(object):
             image_label.setGeometry(QtCore.QRect(10, 8, 60, 60))
             if checker.is_king:
                 image_label.setPixmap(
-                    QtGui.QPixmap("C:/Users/User/IdeaProjects/Draughts/src/main/resources/images/White_king.png"))
+                    QtGui.QPixmap(
+                        resource_path
+                        ("White_king.png")))
             else:
                 image_label.setPixmap(
-                    QtGui.QPixmap("C:/Users/User/IdeaProjects/Draughts/src/main/resources/images/White_checker.png"))
+                    QtGui.QPixmap(
+                        resource_path
+                        ("White_checker.png")))
             group.children().append(image_label)
             image_label.show()
         self.centralwidget.repaint()
